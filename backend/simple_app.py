@@ -2,9 +2,8 @@
 from fastapi.middleware.cors import CORSMiddleware
 import sqlite3
 from datetime import datetime
-import uvicorn
 
-app = FastAPI()
+app = FastAPI(title="Free Report Analyzer", version="1.0.0")
 
 # Allow frontend to connect
 app.add_middleware(
@@ -111,10 +110,3 @@ def get_stats():
 @app.get("/api/health")
 def health_check():
     return {"status": "healthy", "timestamp": datetime.now().isoformat()}
-
-if __name__ == "__main__":
-    print("🚀 Starting Report Analyzer Backend...")
-    print("📡 API: http://localhost:8000")
-    print("📚 Docs: http://localhost:8000/docs")
-    print("\nPress Ctrl+C to stop\n")
-    uvicorn.run(app, host="0.0.0.0", port=8000, reload=True)
