@@ -34,6 +34,9 @@ class SimpleAIAnalyzer:
 
     def analyze(self, text):
         """Simple AI analysis - returns dictionary with insights"""
+
+
+        
         
         # Basic stats
         words = text.split()

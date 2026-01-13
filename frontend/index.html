@@ -98,6 +98,8 @@
             padding: 20px;
             margin: 20px 0;
             border-radius: 8px;
+            max-height: 800px;
+            overflow-y: auto;
         }
         .ai-header {
             display: flex;
@@ -178,6 +180,69 @@
         .urgency-high { color: #e74c3c; }
         .urgency-medium { color: #f39c12; }
         .urgency-low { color: #27ae60; }
+
+        /* === ADD THIS NEW CSS SECTION === */
+        /* AI Conclusion Styles */
+        .ai-conclusion-box {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 20px 0;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .ai-conclusion-title {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 20px;
+            margin-bottom: 15px;
+        }
+
+        .ai-conclusion-content {
+            background: rgba(255, 255, 255, 0.1);
+            padding: 20px;
+            border-radius: 8px;
+            line-height: 1.6;
+        }
+
+        .gemini-badge {
+            background: #4CAF50;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        .fallback-badge {
+            background: #9C27B0;
+            color: white;
+            padding: 3px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            margin-left: 10px;
+        }
+
+        /* Scrollbar styling for AI analysis */
+        #aiAnalysisContainer::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        #aiAnalysisContainer::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        #aiAnalysisContainer::-webkit-scrollbar-thumb {
+            background: #3498db;
+            border-radius: 4px;
+        }
+
+        #aiAnalysisContainer::-webkit-scrollbar-thumb:hover {
+            background: #2980b9;
+        }
     </style>
 </head>
 <body>
@@ -248,16 +313,16 @@ Date: 2024-01-15
         </div>
 
         <div class="button-group" style="margin-top: 15px;">
-    <button onclick="analyzeTemplate()" style="background: #9b59b6;">
-        📝 Learn Template from This Report
-    </button>
-    <button onclick="validateAgainstTemplate()" style="background: #f39c12;">
-        🔍 Validate Against Template
-    </button>
-    <button onclick="viewAllTemplates()" style="background: #34495e;">
-        📚 View All Templates
-    </button>
-</div>
+            <button onclick="analyzeTemplate()" style="background: #9b59b6;">
+                📝 Learn Template from This Report
+            </button>
+            <button onclick="validateAgainstTemplate()" style="background: #f39c12;">
+                🔍 Validate Against Template
+            </button>
+            <button onclick="viewAllTemplates()" style="background: #34495e;">
+                📚 View All Templates
+            </button>
+        </div>
         
         <div id="uploadResult"></div>
         
@@ -391,7 +456,7 @@ Date: 2024-01-15
             }
             
             // Show loading
-            showResult('Uploading and analyzing with AI...', 'loading');
+            showResult('Uploading and analyzing with advanced AI...', 'loading');
             
             try {
                 const response = await fetch(`${API_URL}/api/upload`, {
@@ -406,7 +471,8 @@ Date: 2024-01-15
                         <strong>✅ ${result.message}</strong><br><br>
                         <strong>Department:</strong> ${result.department}<br>
                         <strong>File Type:</strong> ${result.file_type}<br>
-                        <strong>Words:</strong> ${result.word_count}
+                        <strong>Words:</strong> ${result.word_count}<br>
+                        <strong>AI Engine:</strong> ${result.gemini_used ? 'Gemini AI' : 'Simple AI'}
                     `, 'success');
                     
                     // Show AI Analysis
@@ -438,7 +504,10 @@ Date: 2024-01-15
                 <div class="ai-analysis">
                     <div class="ai-header">
                         <span style="font-size: 24px;">🤖</span>
-                        <h3>AI Analysis Results</h3>
+                        <h3>Advanced AI Analysis Results</h3>
+                        ${aiAnalysis.ai_conclusion && aiAnalysis.ai_conclusion.generated_by === 'gemini_ai' ? 
+                          '<span class="gemini-badge">Gemini AI</span>' : 
+                          '<span class="fallback-badge">Simple AI</span>'}
                     </div>
                     
                     <div class="ai-metrics">
@@ -474,6 +543,17 @@ Date: 2024-01-15
                             <div class="ai-metric-icon">🎯</div>
                             <div class="ai-metric-value">${aiAnalysis.topics.length}</div>
                             <div class="ai-metric-label">Topics Found</div>
+                        </div>
+                    </div>
+                    
+                    <!-- AI Conclusion Section -->
+                    <div class="ai-section" style="border-top: 2px solid #4CAF50; padding-top: 15px;">
+                        <div class="ai-section-title">
+                            <span style="background: #4CAF50; color: white; padding: 5px 10px; border-radius: 5px;">🧠</span>
+                            <span>AI-Powered Conclusion</span>
+                        </div>
+                        <div class="ai-conclusion-box">
+                            ${formatAIConclusion(aiAnalysis.ai_conclusion?.ai_conclusion || 'No AI conclusion generated.')}
                         </div>
                     </div>
                     
@@ -515,6 +595,18 @@ Date: 2024-01-15
                 html += `</ul></div>`;
             }
             
+            if (aiAnalysis.action_items && aiAnalysis.action_items.length > 0) {
+                html += `
+                    <div class="ai-section">
+                        <div class="ai-section-title">📋 Action Items</div>
+                        <ul class="ai-list">
+                `;
+                aiAnalysis.action_items.forEach(action => {
+                    html += `<li class="ai-list-item">${action}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
             html += `
                     <div class="ai-section">
                         <div class="ai-section-title">📝 AI Summary</div>
@@ -523,17 +615,78 @@ Date: 2024-01-15
                         </div>
                     </div>
                     
-                    <button onclick="hideAIAnalysis()" style="margin-top: 15px; width: auto; padding: 8px 16px;">
-                        Hide AI Analysis
-                    </button>
+                    <div style="margin-top: 20px; display: flex; gap: 10px;">
+                        <button onclick="hideAIAnalysis()" style="flex: 1; padding: 10px 16px;">
+                            Hide AI Analysis
+                        </button>
+                        <button onclick="regenerateAIConclusion('${aiAnalysis.summary}', '${aiAnalysis.sentiment.label}')" 
+                                style="flex: 1; padding: 10px 16px; background: #4CAF50;">
+                            🧠 Regenerate AI Conclusion
+                        </button>
+                    </div>
                 </div>
             `;
             
             container.innerHTML = html;
             container.style.display = 'block';
-            
-            // Auto-scroll to AI analysis
             container.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        // Helper function to format AI conclusion text
+        function formatAIConclusion(text) {
+            if (!text) return '<em>No conclusion available</em>';
+            
+            // Convert bullet points to HTML
+            return text
+                .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                .replace(/\n/g, '<br>')
+                .replace(/^([0-9]+\..*?)(?=\n|$)/gm, '<strong>$1</strong>')
+                .replace(/^•\s*(.*?)(?=\n|$)/gm, '• <strong>$1</strong>');
+        }
+        
+        // Function to regenerate AI conclusion
+        async function regenerateAIConclusion(summary, sentiment) {
+            const text = document.getElementById('reportText').value || summary;
+            
+            if (!text.trim()) {
+                showResult('Please enter some text to generate AI conclusion', 'error');
+                return;
+            }
+            
+            showResult('🧠 Generating advanced AI conclusion...', 'loading');
+            
+            try {
+                const formData = new FormData();
+                formData.append('text', text);
+                
+                const response = await fetch(`${API_URL}/api/gemini-conclusion`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    // Update the AI conclusion section
+                    const conclusionDiv = document.querySelector('.ai-conclusion-box');
+                    if (conclusionDiv) {
+                        conclusionDiv.innerHTML = formatAIConclusion(result.conclusion.ai_conclusion);
+                        
+                        // Update the header to show Gemini was used
+                        const header = document.querySelector('.ai-analysis .ai-header span:last-child');
+                        if (header && result.gemini_used) {
+                            header.textContent = 'Gemini AI';
+                            header.className = 'gemini-badge';
+                        }
+                        
+                        showResult('✅ AI conclusion regenerated with Gemini!', 'success');
+                    }
+                } else {
+                    showResult(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Error: ${error.message}`, 'error');
+            }
         }
         
         function hideAIAnalysis() {
@@ -555,7 +708,7 @@ Date: 2024-01-15
             }
         }
         
-        // Filter reports
+        // Filter reports (keep your existing filterReports function)
         function filterReports() {
             const deptFilter = document.getElementById('filterDept').value;
             const sentimentFilter = document.getElementById('filterSentiment').value;
@@ -646,6 +799,9 @@ Date: 2024-01-15
             
             container.innerHTML = html;
         }
+        
+        // Keep all your other existing functions (clearFilters, addSampleReport, etc.)
+        // ... [Your existing functions remain the same] ...
         
         function clearFilters() {
             document.getElementById('filterDept').value = '';
@@ -768,222 +924,222 @@ Sales,${document.getElementById('date').value},"Closed deals, Client meetings","
             }
         }
 
-        // Add these new functions
-async function analyzeTemplate() {
-    const department = document.getElementById('department').value;
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    
-    if (!department || !file) {
-        showResult('Please select department and a sample report file', 'error');
-        return;
-    }
-    
-    showResult('Analyzing report template...', 'loading');
-    
-    const formData = new FormData();
-    formData.append('department', department);
-    formData.append('file', file);
-    
-    try {
-        const response = await fetch(`${API_URL}/api/analyze-template`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            showResult(`
-                <strong>✅ Template learned for ${department}!</strong><br><br>
-                <strong>Sections detected:</strong> ${result.template.sections_found.join(', ')}<br>
-                <strong>Bullet style:</strong> ${result.template.bullet_style || 'None'}<br>
-                <strong>Date format:</strong> ${result.template.date_format}<br><br>
-                <button onclick="showTemplateGuide('${department}')" style="background: #9b59b6; padding: 8px 16px; border-radius: 5px; border: none; color: white; cursor: pointer;">
-                    View Template Guide
-                </button>
-            `, 'success');
-        } else {
-            showResult(`Error: ${result.error}`, 'error');
+        // Template functions (keep your existing template functions)
+        async function analyzeTemplate() {
+            const department = document.getElementById('department').value;
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
+            
+            if (!department || !file) {
+                showResult('Please select department and a sample report file', 'error');
+                return;
+            }
+            
+            showResult('Analyzing report template...', 'loading');
+            
+            const formData = new FormData();
+            formData.append('department', department);
+            formData.append('file', file);
+            
+            try {
+                const response = await fetch(`${API_URL}/api/analyze-template`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    showResult(`
+                        <strong>✅ Template learned for ${department}!</strong><br><br>
+                        <strong>Sections detected:</strong> ${result.template.sections_found.join(', ')}<br>
+                        <strong>Bullet style:</strong> ${result.template.bullet_style || 'None'}<br>
+                        <strong>Date format:</strong> ${result.template.date_format}<br><br>
+                        <button onclick="showTemplateGuide('${department}')" style="background: #9b59b6; padding: 8px 16px; border-radius: 5px; border: none; color: white; cursor: pointer;">
+                            View Template Guide
+                        </button>
+                    `, 'success');
+                } else {
+                    showResult(`Error: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Template analysis failed: ${error.message}`, 'error');
+            }
         }
-    } catch (error) {
-        showResult(`Template analysis failed: ${error.message}`, 'error');
-    }
-}
 
-async function validateAgainstTemplate() {
-    const department = document.getElementById('department').value;
-    const reportText = document.getElementById('reportText').value;
-    const fileInput = document.getElementById('fileInput');
-    const file = fileInput.files[0];
-    
-    if (!department) {
-        showResult('Please select a department first', 'error');
-        return;
-    }
-    
-    if (!reportText && !file) {
-        showResult('Please enter report text or select a file', 'error');
-        return;
-    }
-    
-    showResult('Validating against template...', 'loading');
-    
-    const formData = new FormData();
-    formData.append('department', department);
-    
-    if (file) {
-        formData.append('file', file);
-    } else {
-        const textFile = new Blob([reportText], { type: 'text/plain' });
-        formData.append('file', textFile, 'report.txt');
-    }
-    
-    try {
-        const response = await fetch(`${API_URL}/api/validate-report`, {
-            method: 'POST',
-            body: formData
-        });
-        
-        const result = await response.json();
-        
-        if (result.success) {
-            const validation = result.validation;
-            let html = `<strong>📋 Template Validation Results</strong><br><br>`;
+        async function validateAgainstTemplate() {
+            const department = document.getElementById('department').value;
+            const reportText = document.getElementById('reportText').value;
+            const fileInput = document.getElementById('fileInput');
+            const file = fileInput.files[0];
             
-            if (validation.valid) {
-                html += `<span style="color: #27ae60;">✅ Report matches template</span><br>`;
+            if (!department) {
+                showResult('Please select a department first', 'error');
+                return;
+            }
+            
+            if (!reportText && !file) {
+                showResult('Please enter report text or select a file', 'error');
+                return;
+            }
+            
+            showResult('Validating against template...', 'loading');
+            
+            const formData = new FormData();
+            formData.append('department', department);
+            
+            if (file) {
+                formData.append('file', file);
             } else {
-                html += `<span style="color: #e74c3c;">⚠️ Template issues found</span><br>`;
+                const textFile = new Blob([reportText], { type: 'text/plain' });
+                formData.append('file', textFile, 'report.txt');
             }
             
-            html += `<strong>Match Score:</strong> ${validation.template_match_score}/100<br>`;
-            
-            if (validation.missing_sections && validation.missing_sections.length > 0) {
-                html += `<strong>Missing sections:</strong> ${validation.missing_sections.join(', ')}<br>`;
+            try {
+                const response = await fetch(`${API_URL}/api/validate-report`, {
+                    method: 'POST',
+                    body: formData
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    const validation = result.validation;
+                    let html = `<strong>📋 Template Validation Results</strong><br><br>`;
+                    
+                    if (validation.valid) {
+                        html += `<span style="color: #27ae60;">✅ Report matches template</span><br>`;
+                    } else {
+                        html += `<span style="color: #e74c3c;">⚠️ Template issues found</span><br>`;
+                    }
+                    
+                    html += `<strong>Match Score:</strong> ${validation.template_match_score}/100<br>`;
+                    
+                    if (validation.missing_sections && validation.missing_sections.length > 0) {
+                        html += `<strong>Missing sections:</strong> ${validation.missing_sections.join(', ')}<br>`;
+                    }
+                    
+                    if (validation.warnings && validation.warnings.length > 0) {
+                        html += `<strong>Warnings:</strong><br>`;
+                        validation.warnings.forEach(warning => {
+                            html += `• ${warning}<br>`;
+                        });
+                    }
+                    
+                    // Show structured data
+                    if (result.structured_data && result.structured_data.sections) {
+                        html += `<br><strong>📊 Extracted Structure:</strong><br>`;
+                        for (const [section, items] of Object.entries(result.structured_data.sections)) {
+                            html += `<div style="margin-left: 20px;"><strong>${section}:</strong> ${items.length} items</div>`;
+                        }
+                    }
+                    
+                    showResult(html, validation.valid ? 'success' : 'error');
+                } else {
+                    showResult(`Validation failed: ${result.error}`, 'error');
+                }
+            } catch (error) {
+                showResult(`Validation error: ${error.message}`, 'error');
             }
+        }
+
+        async function showTemplateGuide(department) {
+            try {
+                const response = await fetch(`${API_URL}/api/templates/${department}`);
+                const result = await response.json();
+                
+                if (result.success) {
+                    const modal = document.createElement('div');
+                    modal.style.cssText = `
+                        position: fixed;
+                        top: 0;
+                        left: 0;
+                        width: 100%;
+                        height: 100%;
+                        background: rgba(0,0,0,0.5);
+                        display: flex;
+                        justify-content: center;
+                        align-items: center;
+                        z-index: 1000;
+                    `;
+                    
+                    modal.innerHTML = `
+                        <div style="background: white; width: 80%; max-width: 800px; max-height: 80%; border-radius: 15px; padding: 30px; overflow-y: auto;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                                <h2 style="margin: 0;">📋 ${department} Template Guide</h2>
+                                <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                        style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                                    Close
+                                </button>
+                            </div>
+                            <div style="white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                                ${result.guide}
+                            </div>
+                            <div style="margin-top: 20px;">
+                                <button onclick="setTemplateSections('${department}')" 
+                                        style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                                    Set Required Sections
+                                </button>
+                                <button onclick="downloadTemplateGuide('${department}')" 
+                                        style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                                    Download Guide
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                    
+                    document.body.appendChild(modal);
+                } else {
+                    showResult(`No template found for ${department}. Analyze a sample report first.`, 'error');
+                }
+            } catch (error) {
+                showResult(`Error loading template: ${error.message}`, 'error');
+            }
+        }
+
+        function setTemplateSections(department) {
+            const sections = prompt(`Enter required sections for ${department} (comma-separated):\nExample: accomplishments, challenges, plans, metrics`);
             
-            if (validation.warnings && validation.warnings.length > 0) {
-                html += `<strong>Warnings:</strong><br>`;
-                validation.warnings.forEach(warning => {
-                    html += `• ${warning}<br>`;
+            if (sections) {
+                const sectionList = sections.split(',').map(s => s.trim().toLowerCase());
+                
+                fetch(`${API_URL}/api/set-template-sections`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `department=${encodeURIComponent(department)}&required_sections=${encodeURIComponent(JSON.stringify(sectionList))}`
+                })
+                .then(response => response.json())
+                .then(result => {
+                    if (result.success) {
+                        showResult(`✅ Updated required sections for ${department}`, 'success');
+                    } else {
+                        showResult(`Error: ${result.error}`, 'error');
+                    }
+                })
+                .catch(error => {
+                    showResult(`Error: ${error.message}`, 'error');
                 });
             }
-            
-            // Show structured data
-            if (result.structured_data && result.structured_data.sections) {
-                html += `<br><strong>📊 Extracted Structure:</strong><br>`;
-                for (const [section, items] of Object.entries(result.structured_data.sections)) {
-                    html += `<div style="margin-left: 20px;"><strong>${section}:</strong> ${items.length} items</div>`;
-                }
-            }
-            
-            showResult(html, validation.valid ? 'success' : 'error');
-        } else {
-            showResult(`Validation failed: ${result.error}`, 'error');
         }
-    } catch (error) {
-        showResult(`Validation error: ${error.message}`, 'error');
-    }
-}
 
-async function showTemplateGuide(department) {
-    try {
-        const response = await fetch(`${API_URL}/api/templates/${department}`);
-        const result = await response.json();
-        
-        if (result.success) {
-            const modal = document.createElement('div');
-            modal.style.cssText = `
-                position: fixed;
-                top: 0;
-                left: 0;
-                width: 100%;
-                height: 100%;
-                background: rgba(0,0,0,0.5);
-                display: flex;
-                justify-content: center;
-                align-items: center;
-                z-index: 1000;
-            `;
-            
-            modal.innerHTML = `
-                <div style="background: white; width: 80%; max-width: 800px; max-height: 80%; border-radius: 15px; padding: 30px; overflow-y: auto;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
-                        <h2 style="margin: 0;">📋 ${department} Template Guide</h2>
-                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
-                                style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
-                            Close
-                        </button>
-                    </div>
-                    <div style="white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 20px; border-radius: 8px;">
-                        ${result.guide}
-                    </div>
-                    <div style="margin-top: 20px;">
-                        <button onclick="setTemplateSections('${department}')" 
-                                style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
-                            Set Required Sections
-                        </button>
-                        <button onclick="downloadTemplateGuide('${department}')" 
-                                style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
-                            Download Guide
-                        </button>
-                    </div>
-                </div>
-            `;
-            
-            document.body.appendChild(modal);
-        } else {
-            showResult(`No template found for ${department}. Analyze a sample report first.`, 'error');
+        function downloadTemplateGuide(department) {
+            const guide = document.querySelector('div[style*="white-space: pre-wrap"]').textContent;
+            const blob = new Blob([guide], { type: 'text/markdown' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = `${department}_template_guide.md`;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
         }
-    } catch (error) {
-        showResult(`Error loading template: ${error.message}`, 'error');
-    }
-}
-
-function setTemplateSections(department) {
-    const sections = prompt(`Enter required sections for ${department} (comma-separated):\nExample: accomplishments, challenges, plans, metrics`);
-    
-    if (sections) {
-        const sectionList = sections.split(',').map(s => s.trim().toLowerCase());
-        
-        fetch(`${API_URL}/api/set-template-sections`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded',
-            },
-            body: `department=${encodeURIComponent(department)}&required_sections=${encodeURIComponent(JSON.stringify(sectionList))}`
-        })
-        .then(response => response.json())
-        .then(result => {
-            if (result.success) {
-                showResult(`✅ Updated required sections for ${department}`, 'success');
-            } else {
-                showResult(`Error: ${result.error}`, 'error');
-            }
-        })
-        .catch(error => {
-            showResult(`Error: ${error.message}`, 'error');
-        });
-    }
-}
-
-function downloadTemplateGuide(department) {
-    const guide = document.querySelector('div[style*="white-space: pre-wrap"]').textContent;
-    const blob = new Blob([guide], { type: 'text/markdown' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `${department}_template_guide.md`;
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-}
         
         // Show AI Dashboard
         function showAIDashboard() {
-                window.open('ai_dashboard.html', '_blank');
-}
+            window.open('ai_dashboard.html', '_blank');
+        }
         
         // Show result messages
         function showResult(message, type) {
