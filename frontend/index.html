@@ -66,6 +66,29 @@
         .error { background: #f8d7da; padding: 15px; border-radius: 8px; color: #721c24; }
         .loading { text-align: center; padding: 20px; color: #7f8c8d; }
         #reportsContainer { max-height: 500px; overflow-y: auto; }
+        .button-group { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .button-group button { width: auto; padding: 10px 20px; }
+        .filter-group { margin: 15px 0; display: flex; align-items: center; gap: 10px; }
+        .filter-group select { width: auto; padding: 8px 15px; }
+        .report-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px; }
+        .report-department { font-weight: bold; color: #2c3e50; font-size: 16px; }
+        .report-wordcount { background: #e3f2fd; padding: 3px 10px; border-radius: 12px; font-size: 12px; }
+        .report-summary { color: #666; margin: 10px 0; font-size: 14px; line-height: 1.4; }
+        .report-footer { display: flex; justify-content: space-between; color: #888; font-size: 12px; margin-top: 10px; }
+        .file-input-label { 
+            display: block; 
+            padding: 15px; 
+            border: 2px dashed #ddd; 
+            border-radius: 8px;
+            text-align: center;
+            cursor: pointer;
+            margin: 10px 0;
+        }
+        .file-input-label:hover { border-color: #3498db; background: #f8f9fa; }
+        .sample-button { background: #9b59b6; }
+        .sample-button:hover { background: #8e44ad; }
+        .export-button { background: #27ae60; }
+        .export-button:hover { background: #219653; }
     </style>
 </head>
 <body>
@@ -74,12 +97,28 @@
         <p>Upload daily reports from departments and get automatic analysis.</p>
         
         <div class="stats" id="stats">
-            <div class="loading">Loading statistics...</div>
+            <div class="stat-box">
+                <div class="stat-number">0</div>
+                <div>Total Reports</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">0</div>
+                <div>Departments</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">0</div>
+                <div>Today's Reports</div>
+            </div>
+            <div class="stat-box">
+                <div class="stat-number">✅</div>
+                <div>System Active</div>
+            </div>
         </div>
     </div>
     
     <div class="container">
         <h2>📤 Upload New Report</h2>
+        
         <select id="department">
             <option value="">Select Department</option>
             <option value="Engineering">Engineering</option>
@@ -88,42 +127,111 @@
             <option value="HR">Human Resources</option>
             <option value="Finance">Finance</option>
             <option value="Operations">Operations</option>
+            <option value="IT">IT</option>
+            <option value="Customer Support">Customer Support</option>
         </select>
         
-        <input type="date" id="date" value="">
+        <input type="date" id="date">
         
-        <textarea id="reportText" placeholder="Paste your daily report here..." rows="6"></textarea>
+        <textarea id="reportText" placeholder="Paste your daily report here...
+
+Example format:
+Daily Report - Engineering
+Date: 2024-01-15
+
+Accomplishments:
+✅ Fixed login bug
+✅ Deployed new API
+
+Challenges:
+⚠️ Database slow
+⚠️ Team member sick
+
+Plans for Tomorrow:
+🔹 Optimize queries
+🔹 Team meeting
+🔹 Review code" rows="8"></textarea>
         
-        <p style="text-align: center; color: #7f8c8d;">OR upload a file:</p>
-        <input type="file" id="fileInput" accept=".txt,.pdf,.docx,.doc">
+        <p style="text-align: center; color: #7f8c8d; margin: 15px 0;">- OR -</p>
         
-        <button onclick="uploadReport()">📊 Upload & Analyze Report</button>
+        <label class="file-input-label">
+    📁 Click to select a file (TXT, PDF, DOCX, XLSX, CSV)
+            <input type="file" id="fileInput" accept=".txt,.pdf,.docx,.doc,.xlsx,.xls,.csv" style="display: none;">
+            <div id="fileName" style="color: #666; font-size: 12px; margin-top: 5px;">No file selected</div>
+        </label>
         
-        <div id="uploadResult"></div>
+        <button onclick="uploadReport();" style="background: #3498db;">📊 Upload & Analyze Report</button>
+        <button onclick="addSampleReport();" class="sample-button">📋 Add Sample Report</button>
+        <button onclick="addExcelSample();" style="background: #e67e22; margin-top: 5px;">
+    📊 Add Excel/CSV Sample
+        </button>
+        <button onclick="downloadExcelTemplate();" style="background: #16a085; margin-top: 5px;">
+    📋 Download Excel/CSV Template
+        </button>
+        
+        <div id="uploadResult" style="margin-top: 15px;"></div>
     </div>
     
     <div class="container">
         <h2>📋 Recent Reports</h2>
-        <button onclick="loadReports()" style="width: auto; padding: 10px 20px;">🔄 Refresh</button>
-        <div id="reportsContainer"></div>
+        
+        <div class="filter-group">
+            <label>Filter by Department:</label>
+            <select id="filterDept" onchange="filterReports();">
+                <option value="">All Departments</option>
+                <option value="Engineering">Engineering</option>
+                <option value="Marketing">Marketing</option>
+                <option value="Sales">Sales</option>
+                <option value="HR">HR</option>
+                <option value="Finance">Finance</option>
+                <option value="Operations">Operations</option>
+            </select>
+        </div>
+        
+        <div class="button-group">
+            <button onclick="loadReports();">🔄 Refresh Reports</button>
+            <button onclick="exportReportsAdvanced();" class="export-button">📥 Export (Excel/CSV)</button>
+            <button onclick="clearFilters();">🗑️ Clear Filter</button>
+        </div>
+        
+        <div id="reportsContainer">
+            <div class="loading">Loading reports...</div>
+        </div>
     </div>
 
     <script>
+        // Configuration
         const API_URL = 'http://localhost:8000';
+        let allReports = [];
         
-        // Set today's date as default
-        document.getElementById('date').value = new Date().toISOString().split('T')[0];
+        // Initialize on page load
+        window.onload = function() {
+            // Set today's date
+            const today = new Date().toISOString().split('T')[0];
+            document.getElementById('date').value = today;
+            
+            // Setup file input display
+            document.getElementById('fileInput').addEventListener('change', function(e) {
+                const fileName = e.target.files[0] ? e.target.files[0].name : 'No file selected';
+                document.getElementById('fileName').textContent = fileName;
+            });
+            
+            // Load initial data
+            loadStats();
+            loadReports();
+            
+            // Auto-refresh every 30 seconds
+            setInterval(loadStats, 30000);
+        };
         
-        // Load stats on page load
-        loadStats();
-        loadReports();
-        
+        // Load statistics
         async function loadStats() {
             try {
                 const response = await fetch(`${API_URL}/api/stats`);
                 const data = await response.json();
                 
-                document.getElementById('stats').innerHTML = `
+                const statsContainer = document.getElementById('stats');
+                statsContainer.innerHTML = `
                     <div class="stat-box">
                         <div class="stat-number">${data.total_reports}</div>
                         <div>Total Reports</div>
@@ -148,6 +256,7 @@
             }
         }
         
+        // Upload report
         async function uploadReport() {
             const department = document.getElementById('department').value;
             const date = document.getElementById('date').value;
@@ -155,6 +264,7 @@
             const fileInput = document.getElementById('fileInput');
             const file = fileInput.files[0];
             
+            // Validation
             if (!department) {
                 showResult('Please select a department', 'error');
                 return;
@@ -165,6 +275,7 @@
                 return;
             }
             
+            // Create form data
             const formData = new FormData();
             formData.append('department', department);
             formData.append('date', date);
@@ -172,12 +283,13 @@
             if (file) {
                 formData.append('file', file);
             } else {
-                // Create a text file from textarea
+                // Create text file from textarea
                 const textFile = new Blob([reportText], { type: 'text/plain' });
                 formData.append('file', textFile, 'report.txt');
             }
             
-            showResult('Uploading and analyzing...', 'loading');
+            // Show loading
+            showResult('Uploading and analyzing report...', 'loading');
             
             try {
                 const response = await fetch(`${API_URL}/api/upload`, {
@@ -198,6 +310,7 @@
                     // Clear form
                     document.getElementById('reportText').value = '';
                     fileInput.value = '';
+                    document.getElementById('fileName').textContent = 'No file selected';
                     
                     // Refresh data
                     loadStats();
@@ -210,6 +323,7 @@
             }
         }
         
+        // Load all reports
         async function loadReports() {
             const container = document.getElementById('reportsContainer');
             container.innerHTML = '<div class="loading">Loading reports...</div>';
@@ -217,29 +331,263 @@
             try {
                 const response = await fetch(`${API_URL}/api/reports`);
                 const data = await response.json();
-                
-                if (data.reports.length === 0) {
-                    container.innerHTML = '<div class="report-card">No reports yet. Upload the first one!</div>';
-                    return;
-                }
-                
-                let html = '';
-                data.reports.forEach(report => {
-                    html += `
-                        <div class="report-card">
-                            <strong>${report.department}</strong> - ${report.report_date}<br>
-                            <div style="color: #666; margin: 5px 0;">${report.summary}</div>
-                            <small>📝 ${report.word_count} words • 📅 ${new Date(report.upload_date).toLocaleDateString()}</small>
-                        </div>
-                    `;
-                });
-                
-                container.innerHTML = html;
+                allReports = data.reports;
+                filterReports();
             } catch (error) {
                 container.innerHTML = `<div class="error">Error loading reports: ${error.message}</div>`;
             }
         }
+
+        // Add Excel/CSV sample data
+function addExcelSample() {
+    const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'];
+    const randomDept = departments[Math.floor(Math.random() * departments.length)];
+    const today = new Date().toISOString().split('T')[0];
+    
+    // Sample Excel/CSV format
+    const excelSample = `Department,Date,Completed Tasks,Issues,Plans,Status
+${randomDept},${today},"Fixed login bug, Updated documentation","Slow database, Team shortage","Optimize queries, Schedule meeting","In Progress"
+${randomDept},${today},"Deployed API, Tested features","Budget constraints","Review code, Client demo","Completed"
+${randomDept},${today},"Design mockups, User research","Design delays","Finalize designs, User testing","Planning"`;
+    
+    // Fill textarea with CSV format
+    document.getElementById('department').value = randomDept;
+    document.getElementById('reportText').value = excelSample;
+    
+    showResult('Excel/CSV sample loaded. You can copy this to a .csv file or paste directly.', 'success');
+}
+
+// Upload Excel template
+function downloadExcelTemplate() {
+    const template = `Department,Date,Accomplishments,Challenges,Plans,Metrics,Notes
+Engineering,${new Date().toISOString().split('T')[0]},"Fixed bugs, Deployed features","Server issues, Time constraints","Code review, Testing","Uptime: 99%, Bugs: 5","Team performing well"
+Marketing,${new Date().toISOString().split('T')[0]},"Campaign launch, Social media","Budget limits, Design delays","Analytics review, Client meetings","Leads: 50, Traffic: +25%","Need more resources"
+Sales,${new Date().toISOString().split('T')[0]},"Closed deals, Client meetings","Competition, Market slow","Follow-ups, Proposals","Revenue: $50K, Deals: 12","Quarter target achieved"`;
+    
+    const blob = new Blob([template], { type: 'text/csv' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = 'daily_report_template.csv';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    
+    showResult('Excel/CSV template downloaded. Fill it and upload!', 'success');
+}
+
+// Enhanced export function
+async function exportReportsAdvanced() {
+    try {
+        // Ask for format
+        const format = confirm('Export as Excel (XLSX) file? Click OK for Excel, Cancel for CSV.');
         
+        const response = await fetch(`${API_URL}/api/reports/export?format=${format ? 'excel' : 'csv'}`);
+        const data = await response.json();
+        
+        if (data.success) {
+            if (data.format === 'excel') {
+                // Convert hex back to bytes for Excel
+                const bytes = new Uint8Array(data.content.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
+                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            } else {
+                // CSV export
+                const blob = new Blob([data.content], { type: 'text/csv' });
+                const url = window.URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = data.filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+            
+            showResult(`✅ Reports exported as ${data.format.toUpperCase()} file!`, 'success');
+        }
+    } catch (error) {
+        showResult(`Export failed: ${error.message}`, 'error');
+    }
+}
+        
+        // Filter reports by department
+        function filterReports() {
+            const filter = document.getElementById('filterDept').value;
+            const container = document.getElementById('reportsContainer');
+            
+            // Apply filter
+            const filteredReports = filter ? 
+                allReports.filter(report => report.department === filter) : 
+                allReports;
+            
+            // Display results
+            if (filteredReports.length === 0) {
+                container.innerHTML = '<div class="report-card">No reports found.</div>';
+                return;
+            }
+            
+            let html = '';
+            filteredReports.forEach(report => {
+                const uploadDate = new Date(report.upload_date);
+                const formattedDate = uploadDate.toLocaleDateString();
+                const formattedTime = uploadDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                
+                html += `
+                    <div class="report-card">
+                    <div class="report-header">
+                     <div class="report-department">${report.department}</div>
+                            <div style="display: flex; gap: 10px; align-items: center;">
+                <span class="report-wordcount">${report.word_count} words</span>
+                <span style="background: #${getFileTypeColor(report.file_type)}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">
+                    ${report.file_type || 'text'}
+                </span>
+                         </div>
+                    </div>
+                <!-- ... rest of the card ... -->
+            </div>
+                `;
+            });
+            
+            container.innerHTML = html;
+        }
+
+        // Add this helper function
+function getFileTypeColor(fileType) {
+    const colors = {
+        'excel': '27ae60',
+        'csv': '2980b9', 
+        'pdf': 'e74c3c',
+        'word': '3498db',
+        'text': '7f8c8d',
+        'unknown': '95a5a6'
+    };
+    return colors[fileType] || '95a5a6';
+}
+        
+        // Add sample report
+        function addSampleReport() {
+            const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance', 'Operations', 'IT'];
+            const randomDept = departments[Math.floor(Math.random() * departments.length)];
+            const today = new Date().toISOString().split('T')[0];
+            
+            const sampleReports = [
+                `DAILY REPORT - ${randomDept}
+Date: ${today}
+
+ACCOMPLISHMENTS:
+✅ Completed user authentication module
+✅ Fixed critical bug in payment processing
+✅ Deployed new API endpoints to production
+✅ Conducted team training session
+
+CHALLENGES:
+⚠️ Database performance issues under heavy load
+⚠️ Integration delays with third-party service
+⚠️ Team member on emergency leave
+
+PLANS FOR TOMORROW:
+🔹 Optimize database queries
+🔹 Start work on reporting dashboard
+🔹 Team meeting at 10:00 AM
+🔹 Review security protocols
+
+METRICS:
+- System uptime: 99.8%
+- Bugs resolved: 15
+- New features deployed: 3
+
+RESOURCE NEEDS:
+- Additional testing environment
+- Documentation review scheduled
+- Backup server configuration`,
+
+                `DEPARTMENT: ${randomDept}
+STATUS REPORT - ${today}
+
+COMPLETED TASKS:
+- Launched new marketing campaign
+- Updated company website content
+- Analyzed competitor strategies
+- Prepared quarterly presentation
+
+ISSUES ENCOUNTERED:
+- Budget constraints limiting ad spend
+- Design team delayed deliverables
+- Analytics tool configuration problems
+
+NEXT STEPS:
+1. Monitor campaign performance metrics
+2. Schedule client feedback sessions
+3. Prepare monthly performance report
+4. Update social media calendar
+
+KEY METRICS:
+- Website traffic: +25% increase
+- Lead generation: 48 new leads
+- Social engagement: 320 interactions
+- Conversion rate: 4.1%
+
+NOTES:
+Need approval for additional budget. Team performing well under constraints.`
+            ];
+            
+            const randomReport = sampleReports[Math.floor(Math.random() * sampleReports.length)];
+            
+            // Fill form with sample
+            document.getElementById('department').value = randomDept;
+            document.getElementById('reportText').value = randomReport;
+            
+            showResult('Sample report loaded. Click "Upload & Analyze Report" to add it to the system.', 'success');
+        }
+        
+        // Export reports to CSV
+        async function exportReports() {
+            try {
+                const response = await fetch(`${API_URL}/api/reports`);
+                const data = await response.json();
+                
+                // Create CSV content
+                let csv = 'Department,Report Date,Word Count,Filename,Summary,Upload Date\n';
+                
+                data.reports.forEach(report => {
+                    const safeSummary = (report.summary || '')
+                        .replace(/"/g, '""')  // Escape quotes
+                        .replace(/\n/g, ' ')  // Remove line breaks
+                        .replace(/\r/g, ' ');
+                    
+                    csv += `"${report.department}","${report.report_date}",${report.word_count},"${report.filename || 'manual.txt'}","${safeSummary}","${report.upload_date}"\n`;
+                });
+                
+                // Create and download file
+                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `reports_export_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                
+                showResult('✅ Reports exported successfully as CSV file!', 'success');
+            } catch (error) {
+                showResult(`Export failed: ${error.message}`, 'error');
+            }
+        }
+        
+        // Clear filters
+        function clearFilters() {
+            document.getElementById('filterDept').value = '';
+            filterReports();
+            showResult('Filters cleared', 'success');
+        }
+        
+        // Show result messages
         function showResult(message, type) {
             const resultDiv = document.getElementById('uploadResult');
             resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
@@ -247,13 +595,12 @@
             // Auto-clear success messages after 5 seconds
             if (type === 'success') {
                 setTimeout(() => {
-                    resultDiv.innerHTML = '';
+                    if (resultDiv.innerHTML.includes('success')) {
+                        resultDiv.innerHTML = '';
+                    }
                 }, 5000);
             }
         }
-        
-        // Auto-refresh stats every 30 seconds
-        setInterval(loadStats, 30000);
     </script>
 </body>
 </html>
