@@ -6,7 +6,7 @@
         * { box-sizing: border-box; }
         body { 
             font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
-            max-width: 1000px; 
+            max-width: 1200px; 
             margin: 0 auto; 
             padding: 20px;
             background: #f5f7fa;
@@ -19,7 +19,8 @@
             margin-bottom: 20px;
         }
         h1 { color: #2c3e50; border-bottom: 3px solid #3498db; padding-bottom: 10px; }
-        h2 { color: #34495e; }
+        h2 { color: #34495e; margin-top: 0; }
+        h3 { color: #2c3e50; margin-top: 20px; }
         input, select, button, textarea { 
             padding: 12px; 
             margin: 8px 0; 
@@ -89,12 +90,100 @@
         .sample-button:hover { background: #8e44ad; }
         .export-button { background: #27ae60; }
         .export-button:hover { background: #219653; }
+        
+        /* AI Analysis Styles */
+        .ai-analysis {
+            background: #f0f8ff;
+            border-left: 4px solid #4CAF50;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 8px;
+        }
+        .ai-header {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 15px;
+        }
+        .ai-header h3 {
+            margin: 0;
+            color: #2c3e50;
+        }
+        .ai-metrics {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .ai-metric {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            text-align: center;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .ai-metric-icon {
+            font-size: 24px;
+            margin-bottom: 8px;
+        }
+        .ai-metric-value {
+            font-size: 20px;
+            font-weight: bold;
+            margin: 5px 0;
+        }
+        .ai-metric-label {
+            font-size: 12px;
+            color: #7f8c8d;
+            text-transform: uppercase;
+        }
+        .ai-topics {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            margin: 10px 0;
+        }
+        .ai-topic {
+            background: #3498db;
+            color: white;
+            padding: 5px 12px;
+            border-radius: 15px;
+            font-size: 13px;
+        }
+        .ai-section {
+            margin: 15px 0;
+        }
+        .ai-section-title {
+            font-weight: bold;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .ai-list {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+        .ai-list-item {
+            padding: 8px 12px;
+            margin: 5px 0;
+            background: white;
+            border-radius: 6px;
+            border-left: 3px solid #3498db;
+        }
+        .sentiment-positive { color: #27ae60; }
+        .sentiment-negative { color: #e74c3c; }
+        .sentiment-neutral { color: #f39c12; }
+        .urgency-high { color: #e74c3c; }
+        .urgency-medium { color: #f39c12; }
+        .urgency-low { color: #27ae60; }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>📊 Free Daily Report Analyzer</h1>
-        <p>Upload daily reports from departments and get automatic analysis.</p>
+        <p>Upload daily reports from departments and get AI-powered analysis.</p>
         
         <div class="stats" id="stats">
             <div class="stat-box">
@@ -110,8 +199,8 @@
                 <div>Today's Reports</div>
             </div>
             <div class="stat-box">
-                <div class="stat-number">✅</div>
-                <div>System Active</div>
+                <div class="stat-number">🤖</div>
+                <div>AI Active</div>
             </div>
         </div>
     </div>
@@ -135,45 +224,49 @@
         
         <textarea id="reportText" placeholder="Paste your daily report here...
 
-Example format:
+Example:
 Daily Report - Engineering
 Date: 2024-01-15
 
-Accomplishments:
-✅ Fixed login bug
-✅ Deployed new API
-
-Challenges:
-⚠️ Database slow
-⚠️ Team member sick
-
-Plans for Tomorrow:
-🔹 Optimize queries
-🔹 Team meeting
-🔹 Review code" rows="8"></textarea>
+✅ Good: Fixed login bugs, deployed new API
+⚠️ Bad: Database slow during peak hours
+📋 Plan: Optimize queries, schedule team meeting
+🚨 Urgent: Need to fix before Friday" rows="8"></textarea>
         
         <p style="text-align: center; color: #7f8c8d; margin: 15px 0;">- OR -</p>
         
         <label class="file-input-label">
-    📁 Click to select a file (TXT, PDF, DOCX, XLSX, CSV)
+            📁 Click to select a file (TXT, PDF, DOCX, XLSX, CSV)
             <input type="file" id="fileInput" accept=".txt,.pdf,.docx,.doc,.xlsx,.xls,.csv" style="display: none;">
             <div id="fileName" style="color: #666; font-size: 12px; margin-top: 5px;">No file selected</div>
         </label>
         
-        <button onclick="uploadReport();" style="background: #3498db;">📊 Upload & Analyze Report</button>
-        <button onclick="addSampleReport();" class="sample-button">📋 Add Sample Report</button>
-        <button onclick="addExcelSample();" style="background: #e67e22; margin-top: 5px;">
-    📊 Add Excel/CSV Sample
-        </button>
-        <button onclick="downloadExcelTemplate();" style="background: #16a085; margin-top: 5px;">
-    📋 Download Excel/CSV Template
-        </button>
+        <div class="button-group">
+            <button onclick="uploadReport();" style="background: #3498db;">📊 Upload & Analyze with AI</button>
+            <button onclick="addSampleReport();" class="sample-button">📋 Add Sample Report</button>
+            <button onclick="downloadTemplate();" style="background: #16a085;">📄 Download Template</button>
+        </div>
+
+        <div class="button-group" style="margin-top: 15px;">
+    <button onclick="analyzeTemplate()" style="background: #9b59b6;">
+        📝 Learn Template from This Report
+    </button>
+    <button onclick="validateAgainstTemplate()" style="background: #f39c12;">
+        🔍 Validate Against Template
+    </button>
+    <button onclick="viewAllTemplates()" style="background: #34495e;">
+        📚 View All Templates
+    </button>
+</div>
         
-        <div id="uploadResult" style="margin-top: 15px;"></div>
+        <div id="uploadResult"></div>
+        
+        <!-- AI Analysis Display (hidden by default) -->
+        <div id="aiAnalysisContainer" style="display: none;"></div>
     </div>
     
     <div class="container">
-        <h2>📋 Recent Reports</h2>
+        <h2>📋 Recent Reports with AI Analysis</h2>
         
         <div class="filter-group">
             <label>Filter by Department:</label>
@@ -186,12 +279,21 @@ Plans for Tomorrow:
                 <option value="Finance">Finance</option>
                 <option value="Operations">Operations</option>
             </select>
+            
+            <label style="margin-left: 20px;">Filter by Sentiment:</label>
+            <select id="filterSentiment" onchange="filterReports();">
+                <option value="">All Sentiments</option>
+                <option value="positive">Positive 😊</option>
+                <option value="negative">Negative 😟</option>
+                <option value="neutral">Neutral 😐</option>
+            </select>
         </div>
         
         <div class="button-group">
             <button onclick="loadReports();">🔄 Refresh Reports</button>
-            <button onclick="exportReportsAdvanced();" class="export-button">📥 Export (Excel/CSV)</button>
-            <button onclick="clearFilters();">🗑️ Clear Filter</button>
+            <button onclick="exportReports();" class="export-button">📥 Export to CSV</button>
+            <button onclick="clearFilters();">🗑️ Clear Filters</button>
+            <button onclick="showAIDashboard();" style="background: #9b59b6;">🤖 AI Dashboard</button>
         </div>
         
         <div id="reportsContainer">
@@ -245,8 +347,8 @@ Plans for Tomorrow:
                         <div>Today's Reports</div>
                     </div>
                     <div class="stat-box">
-                        <div class="stat-number">✅</div>
-                        <div>System Active</div>
+                        <div class="stat-number">${data.ai_enabled ? '🤖' : '⚙️'}</div>
+                        <div>${data.ai_enabled ? 'AI Active' : 'AI Loading'}</div>
                     </div>
                 `;
             } catch (error) {
@@ -289,7 +391,7 @@ Plans for Tomorrow:
             }
             
             // Show loading
-            showResult('Uploading and analyzing report...', 'loading');
+            showResult('Uploading and analyzing with AI...', 'loading');
             
             try {
                 const response = await fetch(`${API_URL}/api/upload`, {
@@ -303,9 +405,14 @@ Plans for Tomorrow:
                     showResult(`
                         <strong>✅ ${result.message}</strong><br><br>
                         <strong>Department:</strong> ${result.department}<br>
-                        <strong>Words:</strong> ${result.word_count}<br>
-                        <strong>Summary:</strong> ${result.summary}
+                        <strong>File Type:</strong> ${result.file_type}<br>
+                        <strong>Words:</strong> ${result.word_count}
                     `, 'success');
+                    
+                    // Show AI Analysis
+                    if (result.ai_analysis) {
+                        showAIAnalysis(result.ai_analysis);
+                    }
                     
                     // Clear form
                     document.getElementById('reportText').value = '';
@@ -323,10 +430,120 @@ Plans for Tomorrow:
             }
         }
         
+        // Display AI Analysis
+        function showAIAnalysis(aiAnalysis) {
+            const container = document.getElementById('aiAnalysisContainer');
+            
+            let html = `
+                <div class="ai-analysis">
+                    <div class="ai-header">
+                        <span style="font-size: 24px;">🤖</span>
+                        <h3>AI Analysis Results</h3>
+                    </div>
+                    
+                    <div class="ai-metrics">
+                        <div class="ai-metric">
+                            <div class="ai-metric-icon sentiment-${aiAnalysis.sentiment.label}">
+                                ${aiAnalysis.sentiment.label === 'positive' ? '😊' : 
+                                  aiAnalysis.sentiment.label === 'negative' ? '😟' : '😐'}
+                            </div>
+                            <div class="ai-metric-value">${aiAnalysis.sentiment.label.toUpperCase()}</div>
+                            <div class="ai-metric-label">Sentiment</div>
+                            <div style="font-size: 12px; margin-top: 5px;">
+                                Score: ${aiAnalysis.sentiment.score}<br>
+                                +${aiAnalysis.sentiment.positive_words} / -${aiAnalysis.sentiment.negative_words}
+                            </div>
+                        </div>
+                        
+                        <div class="ai-metric">
+                            <div class="ai-metric-icon urgency-${aiAnalysis.urgency}">
+                                ${aiAnalysis.urgency === 'high' ? '🚨' : 
+                                  aiAnalysis.urgency === 'medium' ? '⚠️' : '✅'}
+                            </div>
+                            <div class="ai-metric-value">${aiAnalysis.urgency.toUpperCase()}</div>
+                            <div class="ai-metric-label">Urgency Level</div>
+                        </div>
+                        
+                        <div class="ai-metric">
+                            <div class="ai-metric-icon">📊</div>
+                            <div class="ai-metric-value">${aiAnalysis.word_count}</div>
+                            <div class="ai-metric-label">Words</div>
+                        </div>
+                        
+                        <div class="ai-metric">
+                            <div class="ai-metric-icon">🎯</div>
+                            <div class="ai-metric-value">${aiAnalysis.topics.length}</div>
+                            <div class="ai-metric-label">Topics Found</div>
+                        </div>
+                    </div>
+                    
+                    <div class="ai-section">
+                        <div class="ai-section-title">🎯 Key Topics</div>
+                        <div class="ai-topics">
+            `;
+            
+            aiAnalysis.topics.forEach(topic => {
+                html += `<span class="ai-topic">${topic}</span>`;
+            });
+            
+            html += `
+                        </div>
+                    </div>
+            `;
+            
+            if (aiAnalysis.accomplishments && aiAnalysis.accomplishments.length > 0) {
+                html += `
+                    <div class="ai-section">
+                        <div class="ai-section-title">✅ Accomplishments</div>
+                        <ul class="ai-list">
+                `;
+                aiAnalysis.accomplishments.forEach(acc => {
+                    html += `<li class="ai-list-item">${acc}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
+            if (aiAnalysis.problems && aiAnalysis.problems.length > 0) {
+                html += `
+                    <div class="ai-section">
+                        <div class="ai-section-title">⚠️ Challenges</div>
+                        <ul class="ai-list">
+                `;
+                aiAnalysis.problems.forEach(prob => {
+                    html += `<li class="ai-list-item">${prob}</li>`;
+                });
+                html += `</ul></div>`;
+            }
+            
+            html += `
+                    <div class="ai-section">
+                        <div class="ai-section-title">📝 AI Summary</div>
+                        <div style="background: white; padding: 15px; border-radius: 8px; font-style: italic;">
+                            "${aiAnalysis.summary}"
+                        </div>
+                    </div>
+                    
+                    <button onclick="hideAIAnalysis()" style="margin-top: 15px; width: auto; padding: 8px 16px;">
+                        Hide AI Analysis
+                    </button>
+                </div>
+            `;
+            
+            container.innerHTML = html;
+            container.style.display = 'block';
+            
+            // Auto-scroll to AI analysis
+            container.scrollIntoView({ behavior: 'smooth' });
+        }
+        
+        function hideAIAnalysis() {
+            document.getElementById('aiAnalysisContainer').style.display = 'none';
+        }
+        
         // Load all reports
         async function loadReports() {
             const container = document.getElementById('reportsContainer');
-            container.innerHTML = '<div class="loading">Loading reports...</div>';
+            container.innerHTML = '<div class="loading">Loading reports with AI analysis...</div>';
             
             try {
                 const response = await fetch(`${API_URL}/api/reports`);
@@ -337,138 +554,105 @@ Plans for Tomorrow:
                 container.innerHTML = `<div class="error">Error loading reports: ${error.message}</div>`;
             }
         }
-
-        // Add Excel/CSV sample data
-function addExcelSample() {
-    const departments = ['Engineering', 'Marketing', 'Sales', 'HR', 'Finance'];
-    const randomDept = departments[Math.floor(Math.random() * departments.length)];
-    const today = new Date().toISOString().split('T')[0];
-    
-    // Sample Excel/CSV format
-    const excelSample = `Department,Date,Completed Tasks,Issues,Plans,Status
-${randomDept},${today},"Fixed login bug, Updated documentation","Slow database, Team shortage","Optimize queries, Schedule meeting","In Progress"
-${randomDept},${today},"Deployed API, Tested features","Budget constraints","Review code, Client demo","Completed"
-${randomDept},${today},"Design mockups, User research","Design delays","Finalize designs, User testing","Planning"`;
-    
-    // Fill textarea with CSV format
-    document.getElementById('department').value = randomDept;
-    document.getElementById('reportText').value = excelSample;
-    
-    showResult('Excel/CSV sample loaded. You can copy this to a .csv file or paste directly.', 'success');
-}
-
-// Upload Excel template
-function downloadExcelTemplate() {
-    const template = `Department,Date,Accomplishments,Challenges,Plans,Metrics,Notes
-Engineering,${new Date().toISOString().split('T')[0]},"Fixed bugs, Deployed features","Server issues, Time constraints","Code review, Testing","Uptime: 99%, Bugs: 5","Team performing well"
-Marketing,${new Date().toISOString().split('T')[0]},"Campaign launch, Social media","Budget limits, Design delays","Analytics review, Client meetings","Leads: 50, Traffic: +25%","Need more resources"
-Sales,${new Date().toISOString().split('T')[0]},"Closed deals, Client meetings","Competition, Market slow","Follow-ups, Proposals","Revenue: $50K, Deals: 12","Quarter target achieved"`;
-    
-    const blob = new Blob([template], { type: 'text/csv' });
-    const url = window.URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'daily_report_template.csv';
-    document.body.appendChild(a);
-    a.click();
-    document.body.removeChild(a);
-    
-    showResult('Excel/CSV template downloaded. Fill it and upload!', 'success');
-}
-
-// Enhanced export function
-async function exportReportsAdvanced() {
-    try {
-        // Ask for format
-        const format = confirm('Export as Excel (XLSX) file? Click OK for Excel, Cancel for CSV.');
         
-        const response = await fetch(`${API_URL}/api/reports/export?format=${format ? 'excel' : 'csv'}`);
-        const data = await response.json();
-        
-        if (data.success) {
-            if (data.format === 'excel') {
-                // Convert hex back to bytes for Excel
-                const bytes = new Uint8Array(data.content.match(/.{1,2}/g).map(byte => parseInt(byte, 16)));
-                const blob = new Blob([bytes], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = data.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            } else {
-                // CSV export
-                const blob = new Blob([data.content], { type: 'text/csv' });
-                const url = window.URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = data.filename;
-                document.body.appendChild(a);
-                a.click();
-                document.body.removeChild(a);
-            }
-            
-            showResult(`✅ Reports exported as ${data.format.toUpperCase()} file!`, 'success');
-        }
-    } catch (error) {
-        showResult(`Export failed: ${error.message}`, 'error');
-    }
-}
-        
-        // Filter reports by department
+        // Filter reports
         function filterReports() {
-            const filter = document.getElementById('filterDept').value;
+            const deptFilter = document.getElementById('filterDept').value;
+            const sentimentFilter = document.getElementById('filterSentiment').value;
             const container = document.getElementById('reportsContainer');
             
-            // Apply filter
-            const filteredReports = filter ? 
-                allReports.filter(report => report.department === filter) : 
-                allReports;
+            let filtered = allReports;
             
-            // Display results
-            if (filteredReports.length === 0) {
-                container.innerHTML = '<div class="report-card">No reports found.</div>';
+            if (deptFilter) {
+                filtered = filtered.filter(r => r.department === deptFilter);
+            }
+            
+            if (sentimentFilter) {
+                filtered = filtered.filter(r => 
+                    r.ai_analysis && 
+                    r.ai_analysis.sentiment && 
+                    r.ai_analysis.sentiment.label === sentimentFilter
+                );
+            }
+            
+            if (filtered.length === 0) {
+                container.innerHTML = '<div class="report-card">No reports found matching filters.</div>';
                 return;
             }
             
             let html = '';
-            filteredReports.forEach(report => {
+            filtered.forEach(report => {
                 const uploadDate = new Date(report.upload_date);
                 const formattedDate = uploadDate.toLocaleDateString();
                 const formattedTime = uploadDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
                 
+                const ai = report.ai_analysis || {};
+                const sentiment = ai.sentiment || { label: 'neutral', score: 0 };
+                const topics = ai.topics || [];
+                const summary = ai.summary || report.summary || 'No summary';
+                
                 html += `
                     <div class="report-card">
-                    <div class="report-header">
-                     <div class="report-department">${report.department}</div>
+                        <div class="report-header">
+                            <div class="report-department">${report.department}</div>
                             <div style="display: flex; gap: 10px; align-items: center;">
-                <span class="report-wordcount">${report.word_count} words</span>
-                <span style="background: #${getFileTypeColor(report.file_type)}; color: white; padding: 2px 8px; border-radius: 10px; font-size: 11px;">
-                    ${report.file_type || 'text'}
-                </span>
-                         </div>
+                                ${report.file_type ? `<span style="background: #e3f2fd; padding: 3px 8px; border-radius: 12px; font-size: 11px;">
+                                    ${report.file_type}
+                                </span>` : ''}
+                                <span class="report-wordcount">${report.word_count || 0} words</span>
+                            </div>
+                        </div>
+                        
+                        <div class="report-summary">
+                            ${summary.length > 200 ? summary.substring(0, 200) + '...' : summary}
+                        </div>
+                        
+                        ${ai.sentiment ? `
+                        <div style="margin: 10px 0; display: flex; align-items: center; gap: 10px;">
+                            <span style="font-size: 12px; color: #666;">AI Analysis:</span>
+                            <span style="background: ${sentiment.label === 'positive' ? '#d4edda' : sentiment.label === 'negative' ? '#f8d7da' : '#fff3cd'}; 
+                                  color: ${sentiment.label === 'positive' ? '#155724' : sentiment.label === 'negative' ? '#721c24' : '#856404'};
+                                  padding: 3px 10px; border-radius: 12px; font-size: 12px;">
+                                ${sentiment.label === 'positive' ? '😊 Positive' : sentiment.label === 'negative' ? '😟 Negative' : '😐 Neutral'} 
+                                (${sentiment.score})
+                            </span>
+                            ${ai.urgency ? `<span style="background: #e3f2fd; padding: 3px 10px; border-radius: 12px; font-size: 12px;">
+                                Urgency: ${ai.urgency}
+                            </span>` : ''}
+                        </div>
+                        ` : ''}
+                        
+                        ${topics.length > 0 ? `
+                        <div style="margin: 5px 0;">
+                            <span style="font-size: 12px; color: #666;">Topics: </span>
+                            ${topics.slice(0, 3).map(topic => 
+                                `<span style="background: #f0f8ff; padding: 2px 8px; margin: 0 3px; border-radius: 10px; font-size: 11px;">${topic}</span>`
+                            ).join(' ')}
+                        </div>
+                        ` : ''}
+                        
+                        <div class="report-footer">
+                            <div>
+                                <span>📅 ${formattedDate}</span>
+                                <span style="margin-left: 10px;">🕒 ${formattedTime}</span>
+                            </div>
+                            <div>
+                                <span>📝 ${report.filename || 'manual.txt'}</span>
+                            </div>
+                        </div>
                     </div>
-                <!-- ... rest of the card ... -->
-            </div>
                 `;
             });
             
             container.innerHTML = html;
         }
-
-        // Add this helper function
-function getFileTypeColor(fileType) {
-    const colors = {
-        'excel': '27ae60',
-        'csv': '2980b9', 
-        'pdf': 'e74c3c',
-        'word': '3498db',
-        'text': '7f8c8d',
-        'unknown': '95a5a6'
-    };
-    return colors[fileType] || '95a5a6';
-}
+        
+        function clearFilters() {
+            document.getElementById('filterDept').value = '';
+            document.getElementById('filterSentiment').value = '';
+            filterReports();
+            showResult('Filters cleared', 'success');
+        }
         
         // Add sample report
         function addSampleReport() {
@@ -480,125 +664,339 @@ function getFileTypeColor(fileType) {
                 `DAILY REPORT - ${randomDept}
 Date: ${today}
 
-ACCOMPLISHMENTS:
-✅ Completed user authentication module
-✅ Fixed critical bug in payment processing
-✅ Deployed new API endpoints to production
-✅ Conducted team training session
+✅ ACCOMPLISHMENTS:
+- Successfully deployed new authentication system
+- Fixed critical bug in payment processing
+- Performance improved by 40%
 
-CHALLENGES:
-⚠️ Database performance issues under heavy load
-⚠️ Integration delays with third-party service
-⚠️ Team member on emergency leave
+⚠️ CHALLENGES:
+- Database slow during peak hours
+- Third-party API integration delayed
+- Team member on sick leave
 
-PLANS FOR TOMORROW:
-🔹 Optimize database queries
-🔹 Start work on reporting dashboard
-🔹 Team meeting at 10:00 AM
-🔹 Review security protocols
+🚨 URGENT:
+- Need to optimize database before Friday
+- Security patch required
 
-METRICS:
-- System uptime: 99.8%
-- Bugs resolved: 15
-- New features deployed: 3
+📋 PLANS:
+- Schedule database optimization
+- Meet with API provider
+- Team training session
 
-RESOURCE NEEDS:
-- Additional testing environment
-- Documentation review scheduled
-- Backup server configuration`,
+📊 METRICS:
+- User satisfaction: +25%
+- Page load: 1.8s (from 3.2s)
+- Bugs resolved: 15`,
 
                 `DEPARTMENT: ${randomDept}
-STATUS REPORT - ${today}
+STATUS: ${today}
 
-COMPLETED TASKS:
-- Launched new marketing campaign
-- Updated company website content
-- Analyzed competitor strategies
-- Prepared quarterly presentation
+GOOD NEWS:
+✅ Campaign launched successfully
+✅ Social media engagement up 30%
+✅ Client feedback very positive
 
-ISSUES ENCOUNTERED:
-- Budget constraints limiting ad spend
-- Design team delayed deliverables
-- Analytics tool configuration problems
+PROBLEMS:
+⚠️ Budget constraints limiting ad spend
+⚠️ Design team delayed deliverables
+⚠️ Analytics tool issues
 
-NEXT STEPS:
-1. Monitor campaign performance metrics
-2. Schedule client feedback sessions
-3. Prepare monthly performance report
-4. Update social media calendar
+ACTION ITEMS:
+1. Request additional budget
+2. Follow up with design team
+3. Fix analytics configuration
 
-KEY METRICS:
-- Website traffic: +25% increase
-- Lead generation: 48 new leads
-- Social engagement: 320 interactions
-- Conversion rate: 4.1%
-
-NOTES:
-Need approval for additional budget. Team performing well under constraints.`
+URGENCY: Medium
+NOTES: Team performing well under constraints.`
             ];
             
             const randomReport = sampleReports[Math.floor(Math.random() * sampleReports.length)];
             
-            // Fill form with sample
             document.getElementById('department').value = randomDept;
             document.getElementById('reportText').value = randomReport;
             
-            showResult('Sample report loaded. Click "Upload & Analyze Report" to add it to the system.', 'success');
+            showResult('Sample report loaded. Click "Upload & Analyze with AI" to see AI analysis.', 'success');
         }
         
-        // Export reports to CSV
+        // Download template
+        function downloadTemplate() {
+            const template = `Department,Date,Accomplishments,Challenges,Plans,Urgency,Status
+${document.getElementById('department').value || 'Engineering'},${document.getElementById('date').value},"Fixed bugs, Deployed features","Server issues, Time constraints","Code review, Testing","Medium","In Progress"
+Marketing,${document.getElementById('date').value},"Campaign launch, Social media","Budget limits, Design delays","Analytics review, Client meetings","High","Planning"
+Sales,${document.getElementById('date').value},"Closed deals, Client meetings","Competition, Market slow","Follow-ups, Proposals","Low","Completed"`;
+            
+            const blob = new Blob([template], { type: 'text/csv' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'daily_report_template.csv';
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            
+            showResult('CSV template downloaded. Fill it and upload for AI analysis!', 'success');
+        }
+        
+        // Export reports
         async function exportReports() {
             try {
                 const response = await fetch(`${API_URL}/api/reports`);
                 const data = await response.json();
                 
-                // Create CSV content
-                let csv = 'Department,Report Date,Word Count,Filename,Summary,Upload Date\n';
+                let csv = 'ID,Department,Date,File Type,Word Count,Sentiment,Urgency,Summary\n';
                 
                 data.reports.forEach(report => {
-                    const safeSummary = (report.summary || '')
-                        .replace(/"/g, '""')  // Escape quotes
-                        .replace(/\n/g, ' ')  // Remove line breaks
-                        .replace(/\r/g, ' ');
+                    const ai = report.ai_analysis || {};
+                    const sentiment = ai.sentiment ? ai.sentiment.label : 'unknown';
+                    const urgency = ai.urgency || 'unknown';
                     
-                    csv += `"${report.department}","${report.report_date}",${report.word_count},"${report.filename || 'manual.txt'}","${safeSummary}","${report.upload_date}"\n`;
+                    csv += `"${report.id}","${report.department}","${report.report_date}","${report.file_type}",${report.word_count},"${sentiment}","${urgency}","${(report.summary || '').replace(/"/g, '""')}"\n`;
                 });
                 
-                // Create and download file
-                const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+                const blob = new Blob([csv], { type: 'text/csv' });
                 const url = window.URL.createObjectURL(blob);
-                const link = document.createElement('a');
-                link.href = url;
-                link.download = `reports_export_${new Date().toISOString().split('T')[0]}.csv`;
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `reports_with_ai_${new Date().toISOString().split('T')[0]}.csv`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
                 
-                showResult('✅ Reports exported successfully as CSV file!', 'success');
+                showResult('✅ Reports exported with AI analysis!', 'success');
             } catch (error) {
                 showResult(`Export failed: ${error.message}`, 'error');
             }
         }
+
+        // Add these new functions
+async function analyzeTemplate() {
+    const department = document.getElementById('department').value;
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    
+    if (!department || !file) {
+        showResult('Please select department and a sample report file', 'error');
+        return;
+    }
+    
+    showResult('Analyzing report template...', 'loading');
+    
+    const formData = new FormData();
+    formData.append('department', department);
+    formData.append('file', file);
+    
+    try {
+        const response = await fetch(`${API_URL}/api/analyze-template`, {
+            method: 'POST',
+            body: formData
+        });
         
-        // Clear filters
-        function clearFilters() {
-            document.getElementById('filterDept').value = '';
-            filterReports();
-            showResult('Filters cleared', 'success');
+        const result = await response.json();
+        
+        if (result.success) {
+            showResult(`
+                <strong>✅ Template learned for ${department}!</strong><br><br>
+                <strong>Sections detected:</strong> ${result.template.sections_found.join(', ')}<br>
+                <strong>Bullet style:</strong> ${result.template.bullet_style || 'None'}<br>
+                <strong>Date format:</strong> ${result.template.date_format}<br><br>
+                <button onclick="showTemplateGuide('${department}')" style="background: #9b59b6; padding: 8px 16px; border-radius: 5px; border: none; color: white; cursor: pointer;">
+                    View Template Guide
+                </button>
+            `, 'success');
+        } else {
+            showResult(`Error: ${result.error}`, 'error');
         }
+    } catch (error) {
+        showResult(`Template analysis failed: ${error.message}`, 'error');
+    }
+}
+
+async function validateAgainstTemplate() {
+    const department = document.getElementById('department').value;
+    const reportText = document.getElementById('reportText').value;
+    const fileInput = document.getElementById('fileInput');
+    const file = fileInput.files[0];
+    
+    if (!department) {
+        showResult('Please select a department first', 'error');
+        return;
+    }
+    
+    if (!reportText && !file) {
+        showResult('Please enter report text or select a file', 'error');
+        return;
+    }
+    
+    showResult('Validating against template...', 'loading');
+    
+    const formData = new FormData();
+    formData.append('department', department);
+    
+    if (file) {
+        formData.append('file', file);
+    } else {
+        const textFile = new Blob([reportText], { type: 'text/plain' });
+        formData.append('file', textFile, 'report.txt');
+    }
+    
+    try {
+        const response = await fetch(`${API_URL}/api/validate-report`, {
+            method: 'POST',
+            body: formData
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            const validation = result.validation;
+            let html = `<strong>📋 Template Validation Results</strong><br><br>`;
+            
+            if (validation.valid) {
+                html += `<span style="color: #27ae60;">✅ Report matches template</span><br>`;
+            } else {
+                html += `<span style="color: #e74c3c;">⚠️ Template issues found</span><br>`;
+            }
+            
+            html += `<strong>Match Score:</strong> ${validation.template_match_score}/100<br>`;
+            
+            if (validation.missing_sections && validation.missing_sections.length > 0) {
+                html += `<strong>Missing sections:</strong> ${validation.missing_sections.join(', ')}<br>`;
+            }
+            
+            if (validation.warnings && validation.warnings.length > 0) {
+                html += `<strong>Warnings:</strong><br>`;
+                validation.warnings.forEach(warning => {
+                    html += `• ${warning}<br>`;
+                });
+            }
+            
+            // Show structured data
+            if (result.structured_data && result.structured_data.sections) {
+                html += `<br><strong>📊 Extracted Structure:</strong><br>`;
+                for (const [section, items] of Object.entries(result.structured_data.sections)) {
+                    html += `<div style="margin-left: 20px;"><strong>${section}:</strong> ${items.length} items</div>`;
+                }
+            }
+            
+            showResult(html, validation.valid ? 'success' : 'error');
+        } else {
+            showResult(`Validation failed: ${result.error}`, 'error');
+        }
+    } catch (error) {
+        showResult(`Validation error: ${error.message}`, 'error');
+    }
+}
+
+async function showTemplateGuide(department) {
+    try {
+        const response = await fetch(`${API_URL}/api/templates/${department}`);
+        const result = await response.json();
+        
+        if (result.success) {
+            const modal = document.createElement('div');
+            modal.style.cssText = `
+                position: fixed;
+                top: 0;
+                left: 0;
+                width: 100%;
+                height: 100%;
+                background: rgba(0,0,0,0.5);
+                display: flex;
+                justify-content: center;
+                align-items: center;
+                z-index: 1000;
+            `;
+            
+            modal.innerHTML = `
+                <div style="background: white; width: 80%; max-width: 800px; max-height: 80%; border-radius: 15px; padding: 30px; overflow-y: auto;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px;">
+                        <h2 style="margin: 0;">📋 ${department} Template Guide</h2>
+                        <button onclick="this.parentElement.parentElement.parentElement.remove()" 
+                                style="background: #e74c3c; color: white; border: none; padding: 8px 16px; border-radius: 5px; cursor: pointer;">
+                            Close
+                        </button>
+                    </div>
+                    <div style="white-space: pre-wrap; font-family: monospace; background: #f8f9fa; padding: 20px; border-radius: 8px;">
+                        ${result.guide}
+                    </div>
+                    <div style="margin-top: 20px;">
+                        <button onclick="setTemplateSections('${department}')" 
+                                style="background: #3498db; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer; margin-right: 10px;">
+                            Set Required Sections
+                        </button>
+                        <button onclick="downloadTemplateGuide('${department}')" 
+                                style="background: #27ae60; color: white; border: none; padding: 10px 20px; border-radius: 5px; cursor: pointer;">
+                            Download Guide
+                        </button>
+                    </div>
+                </div>
+            `;
+            
+            document.body.appendChild(modal);
+        } else {
+            showResult(`No template found for ${department}. Analyze a sample report first.`, 'error');
+        }
+    } catch (error) {
+        showResult(`Error loading template: ${error.message}`, 'error');
+    }
+}
+
+function setTemplateSections(department) {
+    const sections = prompt(`Enter required sections for ${department} (comma-separated):\nExample: accomplishments, challenges, plans, metrics`);
+    
+    if (sections) {
+        const sectionList = sections.split(',').map(s => s.trim().toLowerCase());
+        
+        fetch(`${API_URL}/api/set-template-sections`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/x-www-form-urlencoded',
+            },
+            body: `department=${encodeURIComponent(department)}&required_sections=${encodeURIComponent(JSON.stringify(sectionList))}`
+        })
+        .then(response => response.json())
+        .then(result => {
+            if (result.success) {
+                showResult(`✅ Updated required sections for ${department}`, 'success');
+            } else {
+                showResult(`Error: ${result.error}`, 'error');
+            }
+        })
+        .catch(error => {
+            showResult(`Error: ${error.message}`, 'error');
+        });
+    }
+}
+
+function downloadTemplateGuide(department) {
+    const guide = document.querySelector('div[style*="white-space: pre-wrap"]').textContent;
+    const blob = new Blob([guide], { type: 'text/markdown' });
+    const url = window.URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `${department}_template_guide.md`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+}
+        
+        // Show AI Dashboard
+        function showAIDashboard() {
+                window.open('ai_dashboard.html', '_blank');
+}
         
         // Show result messages
         function showResult(message, type) {
             const resultDiv = document.getElementById('uploadResult');
             resultDiv.innerHTML = `<div class="${type}">${message}</div>`;
             
-            // Auto-clear success messages after 5 seconds
+            // Auto-clear success messages after 8 seconds
             if (type === 'success') {
                 setTimeout(() => {
                     if (resultDiv.innerHTML.includes('success')) {
                         resultDiv.innerHTML = '';
                     }
-                }, 5000);
+                }, 8000);
             }
         }
     </script>
